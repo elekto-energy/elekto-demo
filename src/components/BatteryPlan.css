@@ -1,0 +1,330 @@
+/* ===========================
+   BatteryPlan.css — v3.0 med Light Mode
+   =========================== */
+
+/* 🎨 Dark Theme (default) */
+:root {
+  --bp-bg: #0f172a;
+  --bp-bg-card: #1e293b;
+  --bp-bg-hover: #2a3445;
+  --bp-text: #e2e8f0;
+  --bp-text-muted: #94a3b8;
+  --bp-accent: #00ffff;
+  --bp-border: rgba(255, 255, 255, 0.08);
+  --bp-border-strong: #334155;
+  --bp-btn-bg: #06b6d4;
+  --bp-btn-bg-hover: #0891b2;
+}
+
+/* 🎨 Light Theme */
+body.light {
+  --bp-bg: #f8fafc;
+  --bp-bg-card: #ffffff;
+  --bp-bg-hover: #f1f5f9;
+  --bp-text: #0f172a;
+  --bp-text-muted: #64748b;
+  --bp-accent: #0284c7;
+  --bp-border: rgba(0, 0, 0, 0.05);
+  --bp-border-strong: #cbd5e1;
+  --bp-btn-bg: #0284c7;
+  --bp-btn-bg-hover: #0369a1;
+}
+
+/* 📦 Huvudcontainer */
+.battery-plan {
+  background: var(--bp-bg);
+  color: var(--bp-text);
+  padding: 1.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--bp-border);
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(56, 189, 248, 0.08), transparent),
+              var(--bp-bg);
+  max-width: 100%;
+  margin: 1rem auto;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 🏷 Rubrik */
+.bp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .75rem;
+}
+
+.bp-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.bp-title h2 {
+  margin: 0;
+  color: var(--bp-accent);
+  font-size: 1.25rem;
+}
+
+/* 📊 Statistik */
+.bp-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.bp-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.bp-label {
+  font-size: .7rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-value {
+  font-weight: 700;
+  color: var(--bp-text);
+}
+
+/* 🔧 Kontroller */
+.bp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1rem;
+  margin: .5rem 0 1rem;
+}
+
+.bp-control {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--bp-bg-card);
+  border: 1px solid var(--bp-border-strong);
+  padding: .35rem .6rem;
+  border-radius: .6rem;
+  color: var(--bp-text);
+}
+
+.bp-control input[type="number"],
+.bp-control input[type="checkbox"] {
+  accent-color: var(--bp-accent);
+  background: var(--bp-bg);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: .4rem;
+  padding: .25rem .4rem;
+  color: var(--bp-text);
+  font-size: .9rem;
+}
+
+.bp-control input[type="number"] {
+  width: 64px;
+  text-align: center;
+}
+
+/* ⏰ Timmar */
+.hour-selector p {
+  margin: .3rem 0 .4rem;
+  color: var(--bp-text-muted);
+  font-weight: 600;
+}
+
+.hour-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+  margin-bottom: 1rem;
+}
+
+.hour-box {
+  padding: 8px 0;
+  text-align: center;
+  background: var(--bp-bg-card);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .85rem;
+  transition: all .2s ease;
+}
+
+.hour-box:hover {
+  background: var(--bp-bg-hover);
+}
+
+.hour-box.selected {
+  background: var(--bp-accent);
+  color: #fff;
+  font-weight: 700;
+  border-color: var(--bp-accent);
+}
+
+body.light .hour-box.selected {
+  color: #fff; /* Ser till att texten syns även i ljust tema */
+}
+
+/* 📈 Diagramkort */
+.chart-card {
+  background: var(--bp-bg-card);
+  border: 1px solid var(--bp-border);
+  border-radius: 1rem;
+  padding: .75rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .5rem;
+  color: var(--bp-text-muted);
+  font-size: .85rem;
+}
+
+.now-tag {
+  background: var(--bp-bg);
+  color: #f87171;
+  border: 1px solid var(--bp-border-strong);
+  padding: .2rem .5rem;
+  border-radius: .5rem;
+}
+
+/* 📊 KPI-grid */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+  margin-top: .6rem;
+  color: var(--bp-text);
+}
+
+@media (min-width: 1024px) {
+  .kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ✨ Animationer */
+@keyframes pulseLine { 0% { opacity: 1 } 50% { opacity: .35 } 100% { opacity: 1 } }
+@keyframes pulseDot { 0% { transform: scale(1); opacity: 1 } 50% { transform: scale(.75); opacity: .6 } 100% { transform: scale(1); opacity: 1 } }
+
+.pulse-marker { animation: pulseLine 1.4s ease-in-out infinite; }
+.pulse-dot { animation: pulseDot 1.1s ease-in-out infinite; }
+
+/* 🔘 Knapp */
+.bp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: var(--bp-btn-bg);
+  color: #fff;
+  padding: .5rem .9rem;
+  border-radius: .5rem;
+  border: 1px solid var(--bp-btn-bg-hover);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bp-btn:hover {
+  background: var(--bp-btn-bg-hover);
+}
+
+.bp-btn:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.bp-msg {
+  color: var(--bp-text-muted);
+  font-size: .9rem;
+}
+
+/* 📍 Location panel */
+.bp-loc {
+  background: var(--bp-bg-card);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  color: var(--bp-text);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.bp-loc h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--bp-accent);
+}
+
+.bp-loc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bp-loc-row label {
+  flex: 0 0 80px;
+  font-size: 0.9rem;
+  color: var(--bp-text-muted);
+}
+
+.bp-loc-row input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--bp-border-strong);
+  border-radius: 0.5rem;
+  background: var(--bp-bg);
+  color: var(--bp-text);
+  font-size: 0.9rem;
+}
+
+.bp-loc-row input:focus {
+  outline: none;
+  border-color: var(--bp-accent);
+  box-shadow: 0 0 5px var(--bp-accent);
+}
+
+.bp-loc-grid {
+  display: flex;
+  gap: 1rem;
+}
+
+.bp-loc-btn {
+  background: var(--bp-btn-bg);
+  border: none;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bp-loc-btn:hover {
+  background: var(--bp-btn-bg-hover);
+}
+/* ===== Dark-safe SELECT (Safari/macOS fix) ===== */
+.bp-select {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #0e1626;      /* mörk bakgrund även i Safari */
+  color: var(--bp-text);
+  border: 1px solid var(--bp-border-strong);
+  border-radius: .5rem;
+  padding: .35rem .6rem;
+  line-height: 1.2;
+  outline: none;
+}
+.bp-select:hover { border-color: #3a4670; }
+.bp-select:focus {
+  border-color: var(--bp-accent);
+  box-shadow: 0 0 0 3px rgba(16, 224, 212, .2);
+}
+.bp-select:disabled {
+  background-color: #0e1626 !important;
+  color: var(--bp-text-muted) !important;
+  -webkit-text-fill-color: var(--bp-text-muted); /* Safari */
+  opacity: 1; /* undvik ljus overlay i macOS */
+}
+.bp-select option {
+  background: #0b1220;   /* mörk meny */
+  color: var(--bp-text);
+}

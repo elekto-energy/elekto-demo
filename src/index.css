@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* --- Dark-mode rescue for headings/text --- */
+@layer utilities {
+  /* allt som råkar vara svart blir ljust i dark mode */
+  .dark .text-black       { color: theme(colors.slate.200) !important; }
+  .dark .text-gray-900    { color: theme(colors.slate.100) !important; }
+  .dark .text-gray-800    { color: theme(colors.slate.200) !important; }
+  .dark .text-gray-700    { color: theme(colors.slate.300) !important; }
+
+  /* rubriker utan explicit klass får bra default i båda teman */
+  h1, h2, h3, h4 {
+    @apply text-slate-900 dark:text-slate-100;
+  }
+  /* rubrik-undertexter / metadata */
+  .subtitle, .muted {
+    @apply text-slate-600 dark:text-slate-300;
+  }
+}

@@ -1,12 +1,25 @@
+// src/components/DashboardGrid.jsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, ReferenceLine, ReferenceDot
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  ReferenceLine,
+  ReferenceDot,
 } from "recharts";
 import { ethers } from "ethers";
-import { AnalogMeterProduction } from "./cards/AnalogMeterProduction";
-import { BatteryBar } from "./cards/BatteryBar";
-import { SmhiForecastWidget } from "./SmhiForecastWidget";
+import BatteryPlan from "./BatteryPlan";
+import { NibeSensorMultiSelector } from "./NibeSensorMultiSelector";
+import SMHIMetersCard from "./cards/SMHIMetersCard";
+
+<div className="rounded-2xl bg-slate-800 p-6 shadow-lg">
+  <h3 className="text-lg font-semibold mb-2">🌤️ SMHI Vind & Sol</h3>
+  <SMHIMetersCard lat={59.33} lon={18.07} />
+</div>
 
 // --- ELEKTO-konstanter ---
 const ELEKTO_TOKEN_ADDRESS = "0x6a333Ff2233aED4faA5404c4D119Ec7628Bb33dA";
@@ -43,164 +56,12 @@ const mockData = [
   { time: "14:00", production: 2.4, consumption: 3.0 },
 ];
 
-// ===== Inbyggd Batteriplan-komponent =====
-function BatteryPlan({ priceData }) {
-  const [chargeHours, setChargeHours] = useState(4);
-  const [dischargeHours, setDischargeHours] = useState(4);
-  const [sending, setSending] = useState(false);
-  const [sendResult, setSendResult] = useState("");
-  const [sendSuccess, setSendSuccess] = useState(false);
-  const [sentAt, setSentAt] = useState(null);
+// ==== BatteryPlan-komponent ====
 
-  const plan = useMemo(() => {
-    if (!priceData?.length) return [];
-    const sortedAsc = [...priceData].sort((a, b) => a.ore - b.ore);
-    const sortedDesc = [...priceData].sort((a, b) => b.ore - a.ore);
-    const chargeSet = new Set(sortedAsc.slice(0, chargeHours).map((p) => p.hour));
-    const dischargeSet = new Set(sortedDesc.slice(0, dischargeHours).map((p) => p.hour));
-    return priceData.map((p) => ({
-      hour: p.hour,
-      action: chargeSet.has(p.hour)
-        ? "CHARGE"
-        : dischargeSet.has(p.hour)
-        ? "DISCHARGE"
-        : "HOLD",
-      price: p.ore,
-      ts: p._t,
-    }));
-  }, [priceData, chargeHours, dischargeHours]);
+// ==== SLUT på BatteryPlan-komponenten ====
 
-  const sendToEMS = async () => {
-    setSending(true);
-    setSendResult("");
-    setSendSuccess(false);
-    setSentAt(null);
-    try {
-      const res = await fetch("http://localhost:5000/api/ems/battery-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: "cors",
-        body: JSON.stringify({ plan, meta: { chargeHours, dischargeHours } }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(`EMS svarade ${res.status}`);
-      if (data.ok) {
-        setSendSuccess(true);
-        setSendResult(data.message || "Plan mottagen i backend");
-        setSentAt(new Date());
-      } else {
-        setSendSuccess(false);
-        setSendResult("Mottog svar från backend men ok=false");
-      }
-    } catch (err) {
-      setSendSuccess(false);
-      setSendResult(`Fel vid sändning: ${err.message}`);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div className="rounded-2xl bg-slate-800 p-6 shadow-lg text-white">
-      <h3 className="text-lg font-semibold mb-3">🔋 Batteriplan</h3>
-      <div className="flex flex-wrap items-center gap-4 mb-4">
-        <label className="text-sm">
-          Charge-timmar:
-          <input
-            type="number"
-            value={chargeHours}
-            onChange={(e) => setChargeHours(Math.max(0, Math.min(12, Number(e.target.value))))}
-            min="0"
-            max="12"
-            className="ml-2 w-16 bg-slate-700 border border-slate-500 rounded px-2 py-1"
-          />
-        </label>
-        <label className="text-sm">
-          Discharge-timmar:
-          <input
-            type="number"
-            value={dischargeHours}
-            onChange={(e) => setDischargeHours(Math.max(0, Math.min(12, Number(e.target.value))))}
-            min="0"
-            max="12"
-            className="ml-2 w-16 bg-slate-700 border border-slate-500 rounded px-2 py-1"
-          />
-        </label>
-        <button
-          onClick={sendToEMS}
-          disabled={sending || !plan.length}
-          className="ml-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {sending ? "Skickar..." : "Skicka till EMS"}
-        </button>
-      </div>
-      <div className="overflow-auto rounded border border-slate-700">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-900 text-slate-300">
-            <tr>
-              <th className="text-left p-2">Timme</th>
-              <th className="text-left p-2">Pris (öre/kWh)</th>
-              <th className="text-left p-2">Åtgärd</th>
-            </tr>
-          </thead>
-          <tbody>
-            {plan.map((step) => (
-              <tr
-                key={step.hour}
-                className={
-                  step.action === "CHARGE"
-                    ? "text-green-400"
-                    : step.action === "DISCHARGE"
-                    ? "text-red-400"
-                    : "text-slate-200"
-                }
-              >
-                <td className="p-2">{step.hour}</td>
-                <td className="p-2">{step.price.toFixed(1)}</td>
-                <td className="p-2">{step.action}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {sendResult && (
-        <p
-          className={`mt-3 text-sm ${
-            sendSuccess ? "text-green-400" : "text-red-400"
-          }`}
-        >
-          {sendResult}
-          {sendSuccess && sentAt && (
-            <> — {sentAt.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</>
-          )}
-        </p>
-      )}
-    </div>
-  );
-}
 
 export function DashboardGrid() {
-  // SMHI forecast och demo-solproduktion
-  const [smhiForecast, setSmhiForecast] = useState([]);
-  useEffect(() => {
-    fetch(`/api/smhi?lat=59.33&lon=18.07`)
-      .then(res => res.json())
-      .then(data => setSmhiForecast(data.forecast || []));
-  }, []);
-
-  const avgSolar = smhiForecast.length
-    ? smhiForecast.reduce((s, f) => s + (f.solar_rad || 0), 0) / smhiForecast.length
-    : 0;
-  const solproduktion = Math.round(Math.min(10, (avgSolar / 800) * 10) * 10) / 10;
-
-  // Vind kan också synkas, men här sätter vi ett demo-värde:
-  const vindproduktion = 3.4;
-  const batterier = [
-    { value: 73, title: "Batteri 1", status: "charging" },
-    { value: 9, title: "Batteri 2", status: "discharging" }
-  ];
-
-  // Token och spotpris
   const [tokenBalance, setTokenBalance] = useState(null);
   const [walletError, setWalletError] = useState("");
   const [loadingBalance, setLoadingBalance] = useState(false);
@@ -210,9 +71,7 @@ export function DashboardGrid() {
   const [priceMsg, setPriceMsg] = useState("");
   const [loadingPrice, setLoadingPrice] = useState(false);
 
-  const [showBatteryPlan, setShowBatteryPlan] = useState(false);
-
-  // Spotpris-funktioner
+  // ---- Spotpris ----
   const fetchPrices = useCallback(
     async (z = zone, attempt = 0, targetDate = new Date()) => {
       setLoadingPrice(true);
@@ -235,6 +94,7 @@ export function DashboardGrid() {
           setPriceMsg(`Ingen data tillgänglig för ${z}.`);
           return;
         }
+        // Formattera för nya API-fält
         const formatted = data.map((p) => {
           const ts = new Date(p.time_start);
           const hour = ts.toLocaleTimeString("sv-SE", {
@@ -243,11 +103,12 @@ export function DashboardGrid() {
             timeZone: "Europe/Stockholm",
           });
           return {
-            hour,
-            ore: Number(p.SEK_per_kWh) * 100,
+            hour,                                // "HH:mm"
+            ore: Number(p.SEK_per_kWh) * 100,    // SEK → öre
             _t: ts.getTime(),
           };
         });
+
         setPriceData(formatted);
         setPriceMsg("");
       } catch (e) {
@@ -260,10 +121,14 @@ export function DashboardGrid() {
     [zone]
   );
 
-  useEffect(() => { fetchPrices(); }, [fetchPrices]);
-  useEffect(() => { localStorage.setItem("zone", zone); }, [zone]);
+  useEffect(() => {
+    fetchPrices();
+  }, [fetchPrices]);
 
-  // Stats för spotpris
+  useEffect(() => {
+    localStorage.setItem("zone", zone);
+  }, [zone]);
+
   const stats = useMemo(() => {
     if (!priceData.length) return null;
     const min = priceData.reduce((a, b) => (b.ore < a.ore ? b : a), priceData[0]);
@@ -277,7 +142,7 @@ export function DashboardGrid() {
     return { min, max, avg, nowH };
   }, [priceData]);
 
-  // ELEKTO-token
+  // ---- ELEKTO-balans via MetaMask ----
   const fetchTokenBalance = useCallback(async () => {
     if (!window.ethereum) {
       setWalletError("MetaMask hittas inte i denna flik.");
@@ -294,7 +159,7 @@ export function DashboardGrid() {
         try {
           await window.ethereum.request({
             method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x89" }],
+            params: [{ chainId: "0x89" }], // Polygon mainnet
           });
         } catch (err) {
           if (err.code === 4902) {
@@ -315,13 +180,18 @@ export function DashboardGrid() {
           }
         }
       }
+
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
+
       const token = new ethers.Contract(ELEKTO_TOKEN_ADDRESS, ERC20_ABI, provider);
       let decimals = ELEKTO_TOKEN_DECIMALS;
-      try { decimals = await token.decimals(); } catch {}
+      try {
+        decimals = await token.decimals();
+      } catch {}
       const raw = await token.balanceOf(userAddress);
       const formatted = Number(ethers.formatUnits(raw, decimals));
+
       setTokenBalance(formatted);
     } catch (e) {
       setWalletError(e?.message || "Kunde inte läsa tokenbalans.");
@@ -331,49 +201,12 @@ export function DashboardGrid() {
     }
   }, []);
 
-  useEffect(() => { fetchTokenBalance(); }, [fetchTokenBalance]);
+  useEffect(() => {
+    fetchTokenBalance();
+  }, [fetchTokenBalance]);
 
-  // === LAYOUT ===
   return (
-    <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-white bg-gradient-to-br from-slate-900 to-slate-950 min-h-screen">
-      {/* Mätare överst */}
-      <div className="col-span-1 md:col-span-2 xl:col-span-3 flex flex-row gap-10 justify-center mb-4">
-        <AnalogMeterProduction
-          value={solproduktion}
-          min={0}
-          max={10}
-          title="Solproduktion"
-          unit="kW"
-          icon="☀️"
-          color="#16a34a"
-        />
-        <AnalogMeterProduction
-          value={vindproduktion}
-          min={0}
-          max={10}
-          title="Vindproduktion"
-          unit="kW"
-          icon="🌬️"
-          color="#38bdf8"
-        />
-      </div>
-
-      {/* SMHI Soltimmar */}
-      <div className="col-span-1 md:col-span-2 xl:col-span-3 rounded-2xl bg-slate-800 p-4 shadow-lg">
-        <h2 className="text-xl font-bold mb-2">☀️ SMHI Soltimmar</h2>
-        <SmhiForecastWidget forecast={smhiForecast} />
-      </div>
-
-      {/* Batterier – horisontell rad */}
-      <div className="col-span-1 md:col-span-2 xl:col-span-3 bg-white/10 rounded-2xl shadow-xl p-4">
-        <h2 className="text-lg font-semibold mb-3 text-white">Batterier</h2>
-        <div className="flex flex-row gap-8">
-          {batterier.map((batt, i) => (
-            <BatteryBar key={i} {...batt} />
-          ))}
-        </div>
-      </div>
-
+    <div className="col-span-full rounded-2xl bg-slate-800 p-6 shadow-lg">
       {/* Produktion vs Förbrukning */}
       <div className="col-span-1 xl:col-span-2 rounded-2xl bg-slate-800 p-4 shadow-lg">
         <h2 className="text-xl font-bold mb-2">⚡ Produktion vs Förbrukning</h2>
@@ -388,7 +221,6 @@ export function DashboardGrid() {
           </LineChart>
         </ResponsiveContainer>
       </div>
-
       {/* Tokenbalans (MetaMask) */}
       <div className="rounded-2xl bg-slate-800 p-6 shadow-lg">
         <h3 className="text-lg font-semibold mb-2">⚙️ Tokenbalans</h3>
@@ -440,7 +272,15 @@ export function DashboardGrid() {
         </div>
         {walletError && <p className="mt-2 text-sm text-red-400">{walletError}</p>}
       </div>
-
+{/* 🌤️ SMHI Vind & Sol */}
+<div className="col-span-1 md:col-span-2 xl:col-span-3 rounded-2xl bg-slate-800 p-6 shadow-lg">
+  <h3 className="text-lg font-semibold mb-2">🌤️ SMHI Vind & Sol</h3>
+  <SMHIMetersCard lat={59.33} lon={18.07} />
+</div>
+      {/* ---- NibeSensorMultiSelector ---- */}
+<div className="col-span-1 md:col-span-2 xl:col-span-3">
+  <NibeSensorMultiSelector />
+</div>
       {/* Spotpris */}
       <div className="col-span-1 md:col-span-2 xl:col-span-3 rounded-2xl bg-slate-800 p-6 shadow-lg">
         <div className="flex flex-wrap items-center gap-3 mb-3">
@@ -465,12 +305,15 @@ export function DashboardGrid() {
           </button>
         </div>
         {priceMsg && <p className="text-sm text-red-400 mb-2">{priceMsg}</p>}
+
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={priceData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
             <XAxis dataKey="hour" stroke="#94a3b8" />
             <YAxis domain={["auto", "auto"]} unit=" öre/kWh" stroke="#94a3b8" />
             <Tooltip formatter={(v) => `${Number(v).toFixed(1)} öre/kWh`} />
+
+            {/* Medellinje */}
             {stats && (
               <ReferenceLine
                 y={stats.avg}
@@ -480,6 +323,8 @@ export function DashboardGrid() {
                 label={{ value: "Medel", position: "right", fill: "#94a3b8", fontSize: 12 }}
               />
             )}
+
+            {/* Nuvarande timme */}
             {stats && (
               <ReferenceLine
                 x={stats.nowH}
@@ -488,12 +333,16 @@ export function DashboardGrid() {
                 label={{ value: "Nu", position: "insideTop", fill: "#f59e0b", fontSize: 12 }}
               />
             )}
+
+            {/* Min/Max-markeringar */}
             {stats && (
               <>
                 <ReferenceDot x={stats.min.hour} y={stats.min.ore} r={5} fill="#22c55e" stroke="none" />
                 <ReferenceDot x={stats.max.hour} y={stats.max.ore} r={5} fill="#ef4444" stroke="none" />
               </>
             )}
+
+            {/* Färgkodade punkter */}
             <Line
               type="monotone"
               dataKey="ore"
@@ -508,16 +357,8 @@ export function DashboardGrid() {
         </ResponsiveContainer>
       </div>
 
-      {/* Batteriplan – gömd som standard */}
-      <div className="col-span-1 md:col-span-2 xl:col-span-3">
-        <button
-          onClick={() => setShowBatteryPlan((v) => !v)}
-          className="mb-2 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded focus:outline-none"
-        >
-          {showBatteryPlan ? "Dölj batteriplan" : "Visa batteriplan"}
-        </button>
-        {showBatteryPlan && <BatteryPlan priceData={priceData} />}
-      </div>
+      {/* Batteriplan – AI/Manuell, fullbredd */}
+      <BatteryPlan priceData={priceData} />
     </div>
   );
 }
