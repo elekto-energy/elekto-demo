@@ -328,3 +328,7 @@ body.light .hour-box.selected {
   background: #0b1220;   /* mörk meny */
   color: var(--bp-text);
 }
+
+
+/* Tunn vertikal linje för "nu" */
+.bp-now-line { stroke: var(--bp-accent); stroke-width: 1px; }

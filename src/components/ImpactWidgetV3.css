@@ -1,0 +1,157 @@
+/* src/components/ImpactWidgetV3.css */
+:root {
+  --iv3-bg: rgba(15, 23, 42, 0.8);
+  --iv3-card: rgba(2, 6, 23, 0.55);
+  --iv3-border: rgba(148, 163, 184, 0.15);
+  --iv3-grid: rgba(148, 163, 184, 0.15);
+  --iv3-text: #e2e8f0;
+  --iv3-muted: #94a3b8;
+  --iv3-pos: #22c55e;
+  --iv3-neg: #ef4444;
+  --primary: #06b6d4;
+  --secondary: #22c55e;
+  --accent: #eab308;
+}
+
+.card-glass {
+  background: radial-gradient(1000px 400px at 0% -10%, rgba(6,182,212,0.08), transparent), var(--iv3-bg);
+  border: 1px solid var(--iv3-border);
+  border-radius: 16px;
+  padding: 14px;
+  color: var(--iv3-text);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+.impactv3-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.impactv3-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.icon-spark {
+  display:inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items:center;
+  justify-content:center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(34,197,94,0.25));
+  border: 1px solid var(--iv3-border);
+}
+
+.impactv3-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.kvp {
+  display: grid;
+  grid-template-columns: auto;
+  gap: 4px;
+}
+
+.kvp label {
+  font-size: 10px;
+  color: var(--iv3-muted);
+}
+
+.kvp input {
+  background: var(--iv3-card);
+  border: 1px solid var(--iv3-border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--iv3-text);
+  width: 86px;
+}
+
+.impactv3-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0 10px 0;
+  flex-wrap: wrap;
+}
+
+.tab {
+  background: var(--iv3-card);
+  color: var(--iv3-text);
+  border: 1px solid var(--iv3-border);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  transition: transform .15s ease, box-shadow .15s ease, background .2s;
+}
+
+.tab:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+.tab.active { outline: 1px solid var(--primary); box-shadow: 0 0 0 3px rgba(6,182,212,0.25) inset; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.kpi {
+  background: var(--iv3-card);
+  border: 1px solid var(--iv3-border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.kpi-label { font-size: 11px; color: var(--iv3-muted); }
+.kpi-value { font-size: 22px; font-weight: 800; letter-spacing: 0.2px; }
+.kpi-value.pos { color: var(--iv3-pos); }
+.kpi-value.neg { color: var(--iv3-neg); }
+.kpi .unit { font-size: 12px; font-weight: 600; color: var(--iv3-muted); margin-left: 4px; }
+.kpi-sub { font-size: 11px; color: var(--iv3-muted); margin-top: 2px; }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.chart-card {
+  background: var(--iv3-card);
+  border: 1px solid var(--iv3-border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.chart-title {
+  font-size: 12px;
+  color: var(--iv3-muted);
+  margin-bottom: 6px;
+}
+
+/* Recharts grid color */
+.grid line { stroke: var(--iv3-grid) !important; }
+
+.muted {
+  color: var(--iv3-muted);
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+.loading-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--iv3-muted);
+}
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .charts-row { grid-template-columns: 1fr; }
+  .impactv3-controls { flex-wrap: wrap; }
+}

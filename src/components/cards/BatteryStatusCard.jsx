@@ -1,49 +1,56 @@
-// src/components/cards/BatteryCard.jsx
 import React, { useEffect, useState } from "react";
+import { API_BASE } from "@/utils/apiBase";
 
-export default function BatteryCard() {
-  const [batteryLevel, setBatteryLevel] = useState(68); // Simulerad nivå i procent
-  const [charging, setCharging] = useState(true);       // Laddar eller inte
+export default function BatteryStatusCard() {
+  const [soc, setSoc] = useState(62);
+  const [status, setStatus] = useState("idle"); // charging|discharging|idle
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBatteryLevel((prev) => {
-        const delta = charging ? 0.5 : -0.3;
-        let newLevel = prev + delta;
-        if (newLevel >= 100) {
-          setCharging(false);
-          newLevel = 100;
-        } else if (newLevel <= 20) {
-          setCharging(true);
-          newLevel = 20;
-        }
-        return parseFloat(newLevel.toFixed(1));
-      });
-    }, 3000); // Uppdatera var 3:e sekund
-    return () => clearInterval(interval);
-  }, [charging]);
+    let mounted = true;
+    fetch(`${API_BASE}/battery/status`).then(async r => {
+      const js = await r.json();
+      if (!mounted) return;
+      if (typeof js?.soc === "number") setSoc(js.soc);
+      if (js?.status) setStatus(js.status);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, []);
 
-  const statusColor =
-    batteryLevel >= 80
-      ? "bg-green-500"
-      : batteryLevel >= 40
-      ? "bg-yellow-400"
-      : "bg-red-500";
+  const color =
+    status === "charging" ? "var(--accent-green)" :
+    status === "discharging" ? "var(--accent-red)" :
+    "var(--accent-blue)";
+
+  const label =
+    status === "charging" ? "laddar" :
+    status === "discharging" ? "urladdar" :
+    "vilar";
 
   return (
-    <div className="text-blue-100">
-      <p className="mb-2 text-blue-200">Batterinivå och laddstatus:</p>
-      <div className="flex items-center gap-4">
-        <div className="w-full bg-gray-700 rounded-full h-6 overflow-hidden shadow-inner">
-          <div
-            className={`h-full ${statusColor} transition-all duration-500`}
-            style={{ width: `${batteryLevel}%` }}
-          ></div>
-        </div>
-        <span className="text-blue-300 font-semibold">{batteryLevel}%</span>
+    <div style={{ display:"grid", gap: 10 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div>Laddningsnivå</div>
+        <div style={{ fontWeight: 700 }}>{soc}%</div>
       </div>
-      <div className="mt-2 text-sm text-blue-400">
-        Status: {charging ? "🔌 Laddar" : "🔋 Utskrift"}
+      <div style={{
+        width:"100%",
+        height: 14,
+        background:"rgba(0,0,0,0.08)",
+        borderRadius: 999,
+        position:"relative",
+        overflow:"hidden",
+        border: "1px solid var(--card-border)",
+      }}>
+        <div style={{
+          width:`${soc}%`,
+          height:"100%",
+          background: color,
+          transition:"width .4s ease"
+        }} />
+      </div>
+      <div style={{ fontSize:12, opacity:0.8, display:"flex", gap:8 }}>
+        <span>Status:</span>
+        <b style={{ color }}>{label}</b>
       </div>
     </div>
   );

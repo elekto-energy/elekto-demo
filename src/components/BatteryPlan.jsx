@@ -113,6 +113,7 @@ export default function BatteryPlan({
   const [chargingHours, setChargingHours] = useState(Array(24).fill(false));
   const [socNow, setSocNow] = useState(socNowProp ?? 54);
   const [sending, setSending] = useState(false);
+  const [sunSourceLabel, setSunSourceLabel] = useState("");
   const [sendMsg, setSendMsg] = useState("");
   const [warnMsg, setWarnMsg] = useState("");
   const [lastUpdated, setLastUpdated] = useState("");
@@ -371,6 +372,14 @@ export default function BatteryPlan({
         <div className="bp-title">
           <Zap size={18} className="bp-title-icon" />
           <h2>Battery AI Plan</h2>
+        </div>
+        <div className="flex items-center gap-2 ml-2">
+          <label className="bp-control" style={{padding:'.2rem .5rem'}}>
+            Priszon
+            <select value={zone} onChange={(e)=>onZoneChange && onZoneChange(e.target.value)} className="bg-white text-black px-2 py-1 rounded border border-slate-600">
+              {["SE1","SE2","SE3","SE4"].map(z => <option key={z} value={z}>{z}</option>)}
+            </select>
+          </label>
         </div>
         <div className="bp-stats">
           <div className="bp-stat"><span className="bp-label">SOC</span><span className="bp-value">{Math.round(socNowProp ?? socNow)}%</span></div>
