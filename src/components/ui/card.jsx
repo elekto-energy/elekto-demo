@@ -1,15 +1,56 @@
-// src/components/ui/card.jsx
-import React from "react";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-export function Card({ title, icon: Icon, onClick, children, className }) {
+export function Card({ className, ...props }) {
   return (
     <div
-      onClick={onClick}
-      className={`cursor-pointer rounded-2xl shadow-md p-6 bg-white hover:shadow-xl transition-all ${className || ""}`}
-    >
-      {Icon && <Icon className="w-6 h-6 mb-2 text-yellow-500" />}
-      <h2 className="text-lg font-semibold mb-1">{title}</h2>
-      <div className="text-sm text-gray-600">{children}</div>
-    </div>
+      className={cn(
+        "rounded-xl border bg-card text-card-foreground shadow",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function CardHeader({ className, ...props }) {
+  return (
+    <div
+      className={cn("flex flex-col space-y-1.5 p-6", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardTitle({ className, ...props }) {
+  return (
+    <h3
+      className={cn("font-semibold leading-none tracking-tight", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardDescription({ className, ...props }) {
+  return (
+    <p
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  );
+}
+
+export function CardContent({ className, ...props }) {
+  return (
+    <div className={cn("p-6 pt-0", className)} {...props} />
+  );
+}
+
+export function CardFooter({ className, ...props }) {
+  return (
+    <div
+      className={cn("flex items-center p-6 pt-0", className)}
+      {...props}
+    />
   );
 }

@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+// src/components/DashboardGrid.jsx
+import React, { useEffect, useState } from "react";
 import { API_BASE } from "@/utils/apiBase";
 import { useOutletContext } from "react-router-dom";
 import { PlusCircle } from "lucide-react";
+import BatteryPlanProShadcn from "@/components/cards/BatteryPlanProShadcn";
 
 import SolarProductionCard from "./cards/SolarProductionCard";
 import ConsumptionCard from "./cards/ConsumptionCard";
@@ -19,68 +21,102 @@ export default function DashboardGrid() {
 
   useEffect(() => {
     let mounted = true;
-    fetch(`${API_BASE}/elekto/balance`).then(async (r) => {
-      try {
+    fetch(`${API_BASE}/elekto/balance`)
+      .then(async (r) => {
+        if (!r.ok) return;
         const data = await r.json();
-        if (mounted && typeof data?.balance === "number") setElektoBalance(data.balance);
-      } catch (_) {}
-    }).catch(() => {});
-    return () => { mounted = false; }
+        if (mounted && typeof data?.balance === "number") {
+          setElektoBalance(data.balance);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {});
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const simulateEarn = () => setElektoBalance((b) => +(b + 0.5).toFixed(3));
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"repeat(12,1fr)", gap:16 }}>
-      <div className="card-glass card-eq" style={{ gridColumn:"span 6" }}>
+    // Viktigt: 'dashboard-grid' ger rätt z-index enligt vår index.css patch
+    <div className="dashboard-grid relative z-[1] grid grid-cols-12 gap-4">
+      {/* Produktion / Förbrukning */}
+      <section className="card-glass card-eq col-span-12 md:col-span-6">
         <div className="section-title">Produktion</div>
         <SolarProductionCard />
-      </div>
-      <div className="card-glass card-eq" style={{ gridColumn:"span 6" }}>
+      </section>
+
+      <section className="card-glass card-eq col-span-12 md:col-span-6">
         <div className="section-title">Förbrukning</div>
         <ConsumptionCard />
-      </div>
-      <div className="card-glass card-eq" style={{ gridColumn:"span 6" }}>
+      </section>
+
+      {/* Batteri / Spotpris */}
+      <section className="card-glass card-eq col-span-12 md:col-span-6">
         <div className="section-title">Batteri</div>
         <BatteryStatusCard />
-      </div>
-      <div className="card-glass card-eq" style={{ gridColumn:"span 6" }}>
+      </section>
+
+      <section className="card-glass card-eq col-span-12 md:col-span-6">
         <div className="section-title">Spotpris (24h)</div>
         <SpotPriceCard />
-      </div>
-      <div className="card-glass" style={{ gridColumn:"span 12" }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+      </section>
+
+      {/* Batteriplan – läggs i egen container under menyn (z-index 1) */}
+      <section className="card-glass card-eq col-span-12">
+        <div className="section-title">Batteriplan (AI + Manuellt)</div>
+        <div className="battery-plan-container relative z-[1]">
+          <BatteryPlanProShadcn defaultZone="SE3" useSmhiWind />
+        </div>
+      </section>
+
+      {/* ELEKTO balans */}
+      <section className="card-glass col-span-12">
+        <div className="flex items-center justify-between">
           <div className="section-title">ELEKTO — Tjäna & Dela</div>
-          <button onClick={simulateEarn} className="theme-toggle" title="Simulera earn (demo)">
-            <PlusCircle size={20}/>
+          <button
+            onClick={simulateEarn}
+            className="theme-toggle inline-flex items-center gap-2"
+            title="Simulera earn (demo)"
+          >
+            <PlusCircle size={20} />
           </button>
         </div>
-        <div style={{ fontSize:28, fontWeight:800 }}>{elektoBalance} <span style={{ fontSize:14, opacity:.8 }}>ELEKTO</span></div>
-        <div style={{ fontSize:12, opacity:.7 }}>1 ELEKTO = 1 kWh (internt)</div>
-      </div>
+        <div className="text-3xl font-extrabold">
+          {elektoBalance}{" "}
+          <span className="text-sm opacity-80">ELEKTO</span>
+        </div>
+        <div className="text-xs opacity-70">1 ELEKTO = 1 kWh (internt)</div>
+      </section>
 
+      {/* Avancerade kort */}
       {advanced && (
         <>
-          <div className="card-glass" style={{ gridColumn:"span 6" }}>
+          <section className="card-glass col-span-12 md:col-span-6">
             <div className="section-title">Vind</div>
             <WindGauge />
-          </div>
-          <div className="card-glass" style={{ gridColumn:"span 6" }}>
+          </section>
+
+          <section className="card-glass col-span-12 md:col-span-6">
             <div className="section-title">Solinstrålning</div>
             <SolarGauge />
-          </div>
-          <div className="card-glass" style={{ gridColumn:"span 12" }}>
+          </section>
+
+          <section className="card-glass col-span-12">
             <div className="section-title">Energiflöde</div>
             <EnergyFlowCard />
-          </div>
-          <div className="card-glass" style={{ gridColumn:"span 6" }}>
+          </section>
+
+          <section className="card-glass col-span-12 md:col-span-6">
             <div className="section-title">Nätgräns</div>
             <GridLimitCard />
-          </div>
-          <div className="card-glass" style={{ gridColumn:"span 12" }}>
+          </section>
+
+          <section className="card-glass col-span-12">
             <div className="section-title">Communitydelning (3 hus)</div>
             <CommunitySharingCard />
-          </div>
+          </section>
         </>
       )}
     </div>

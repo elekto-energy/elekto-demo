@@ -1,26 +1,25 @@
 // src/components/layout/Sidebar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Activity, BatteryFull, Plug, Coins, Settings, SendHorizontal } from "lucide-react";
+import {
+  Home, Activity, BatteryFull, Plug, Coins, Settings, SendHorizontal
+} from "lucide-react";
 import Modal from "@/components/common/Modal";
 import { ensureWallet, getBalance, sendTokens } from "@/utils/elekto";
 import cfg from "@/utils/elektoConfig.json";
 
-const linkStyle = ({ isActive }) => ({
-  textDecoration: "none",
-  color: "var(--text-color)",
-  background: isActive ? "var(--card-bg)" : "transparent",
-  border: `1px solid var(--card-border)`,
-  padding: "10px 12px",
-  borderRadius: 14,
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  fontWeight: 600,
-});
+const linkClass = ({ isActive }) =>
+  [
+    "no-underline rounded-xl border px-3 py-2 flex items-center gap-2 font-semibold transition",
+    "border-border",
+    isActive
+      ? "bg-card text-foreground shadow-sm"
+      : "bg-transparent hover:bg-accent hover:text-accent-foreground",
+  ].join(" ");
 
-export default function Sidebar() {
-  const [open, setOpen] = React.useState(false);
+export default function Sidebar({ open = false }) {
+  // modal-state döps om för att inte krocka med prop 'open'
+  const [modalOpen, setModalOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [account, setAccount] = React.useState("");
   const [balance, setBalance] = React.useState(0);
@@ -30,7 +29,7 @@ export default function Sidebar() {
   const [error, setError] = React.useState("");
 
   const openModal = async () => {
-    setOpen(true);
+    setModalOpen(true);
     setError(""); setTx("");
     try {
       const { signer, account: acc } = await ensureWallet();
@@ -38,7 +37,7 @@ export default function Sidebar() {
       const bal = await getBalance(signer);
       setBalance(bal);
     } catch (e) {
-      setError(e.message || String(e));
+      setError(e?.message || String(e));
     }
   };
 
@@ -47,64 +46,97 @@ export default function Sidebar() {
     try {
       const { signer } = await ensureWallet();
       const res = await sendTokens({ signer, to, amount: amt });
-      setTx(res.hash || "");
+      setTx(res?.hash || "");
       const bal = await getBalance(signer);
       setBalance(bal);
       setAmt(""); setTo("");
     } catch (e) {
-      setError(e.message || String(e));
+      setError(e?.message || String(e));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <aside style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ opacity: 0.7, marginBottom: 6 }}>Meny</div>
-      <NavLink style={linkStyle} to="/"><Home size={16}/> Dashboard</NavLink>
-      <NavLink style={linkStyle} to="/production"><Activity size={16}/> Produktion & Förbrukning</NavLink>
-      <NavLink style={linkStyle} to="/battery"><BatteryFull size={16}/> Batteri</NavLink>
-      <NavLink style={linkStyle} to="/ev"><Plug size={16}/> EV-laddning</NavLink>
-      <NavLink style={linkStyle} to="/elekto"><Coins size={16}/> ELEKTO</NavLink>
-      <NavLink style={linkStyle} to="/settings"><Settings size={16}/> Inställningar</NavLink>
+    // Nytt: togglar 'sidebar--open' för mobil (matchar index.css)
+    <aside className={`sidebar ${open ? "sidebar--open" : ""} w-64 shrink-0 p-4 flex flex-col gap-3`}>
+      <div className="text-sm text-muted-foreground mb-1">Meny</div>
 
-      <div style={{ height: 1, background:"var(--card-border)", margin:"8px 0" }} />
-      <button className="theme-toggle" onClick={openModal} style={{ display:"flex", alignItems:"center", gap:8 }}>
-        <SendHorizontal size={16}/> Skicka ELEKTO
+      <NavLink className={linkClass} to="/">
+        <Home className="w-4 h-4" /> Dashboard
+      </NavLink>
+      <NavLink className={linkClass} to="/production">
+        <Activity className="w-4 h-4" /> Produktion &amp; Förbrukning
+      </NavLink>
+      <NavLink className={linkClass} to="/battery">
+        <BatteryFull className="w-4 h-4" /> Batteri
+      </NavLink>
+      <NavLink className={linkClass} to="/ev">
+        <Plug className="w-4 h-4" /> EV-laddning
+      </NavLink>
+      <NavLink className={linkClass} to="/elekto">
+        <Coins className="w-4 h-4" /> ELEKTO
+      </NavLink>
+      <NavLink className={linkClass} to="/settings">
+        <Settings className="w-4 h-4" /> Inställningar
+      </NavLink>
+
+      <div className="h-px bg-border my-1" />
+
+      <button
+        type="button"
+        onClick={openModal}
+        className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 font-medium
+                   bg-secondary text-secondary-foreground hover:bg-secondary/80 transition"
+      >
+        <SendHorizontal className="w-4 h-4" /> Skicka ELEKTO
       </button>
 
-      <Modal open={open} onClose={()=>setOpen(false)} title="Skicka ELEKTO">
-        <div style={{ display:"grid", gridTemplateColumns:"1fr", gap: 8 }}>
-          <div style={{ fontSize:12, opacity:.7 }}>Konto</div>
-          <div style={{ fontSize:12, wordBreak:"break-all" }}>{account || (cfg.mock ? "MOCK-LÄGE" : "—")}</div>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Skicka ELEKTO">
+        <div className="grid gap-2">
+          <div className="text-xs text-muted-foreground">Konto</div>
+          <div className="text-xs break-all">
+            {account || (cfg?.mock ? "MOCK-LÄGE" : "—")}
+          </div>
 
-          <div style={{ fontSize:12, opacity:.7, marginTop:6 }}>Saldo</div>
-          <div style={{ fontWeight:700 }}>{Number(balance).toFixed(4)} {cfg.symbol}</div>
+          <div className="text-xs text-muted-foreground mt-2">Saldo</div>
+          <div className="font-semibold">
+            {Number(balance || 0).toFixed(4)} {cfg?.symbol}
+          </div>
 
-          <div style={{ display:"grid", gridTemplateColumns:"1fr", gap: 8, marginTop:8 }}>
-            <input placeholder="Mottagaradress" value={to} onChange={(e)=>setTo(e.target.value)}
-                   style={inputStyle} />
-            <input placeholder={`Belopp (${cfg.symbol})`} value={amt} onChange={(e)=>setAmt(e.target.value)}
-                   style={inputStyle} />
-            <button className="theme-toggle" disabled={loading} onClick={doSend}>
+          <div className="grid gap-2 mt-2">
+            <input
+              placeholder="Mottagaradress"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="w-full rounded-lg border border-border bg-card text-foreground px-3 py-2 outline-none"
+            />
+            <input
+              placeholder={`Belopp (${cfg?.symbol})`}
+              value={amt}
+              onChange={(e) => setAmt(e.target.value)}
+              className="w-full rounded-lg border border-border bg-card text-foreground px-3 py-2 outline-none"
+            />
+            <button
+              type="button"
+              disabled={loading}
+              onClick={doSend}
+              className="inline-flex justify-center rounded-lg px-3 py-2
+                         bg-primary text-primary-foreground hover:opacity-90 transition disabled:opacity-60"
+            >
               {loading ? "Skickar…" : "Skicka"}
             </button>
           </div>
-          {tx && <div style={{ fontSize:12, marginTop:8 }}>Tx: {tx}</div>}
-          {error && <div style={{ color:"var(--accent-red)", marginTop:8 }}>{error}</div>}
-          {cfg.mock && <div style={{ fontSize:12, opacity:.7, marginTop:8 }}>Mock-läge är PÅ – transaktioner sker endast lokalt.</div>}
+
+          {tx && <div className="text-xs mt-2">Tx: {tx}</div>}
+          {error && <div className="text-xs mt-2 text-red-500">{error}</div>}
+          {cfg?.mock && (
+            <div className="text-xs text-muted-foreground mt-2">
+              Mock-läge är PÅ – transaktioner sker endast lokalt.
+            </div>
+          )}
         </div>
       </Modal>
     </aside>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid var(--card-border)",
-  background: "var(--card-bg)",
-  color: "var(--text-color)",
-  outline: "none"
-};

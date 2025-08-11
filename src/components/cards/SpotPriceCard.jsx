@@ -1,49 +1,62 @@
+// src/components/cards/SpotPriceCard.jsx
 import React, { useEffect, useState } from "react";
-import { API_BASE } from "@/utils/apiBase";
 import {
   ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
 } from "recharts";
 
-export default function SpotPriceCard() {
+export default function SpotPriceCard({ zone = "SE3" }) {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    let mounted = true;
-    fetch(`${API_BASE}/prices/day`).then(async r => {
-      const js = await r.json();
-      if (mounted && Array.isArray(js)) setData(js);
-    }).catch(() => {
-      const mock = Array.from({ length: 24 }).map((_, i) => ({
-        time: `${String(i).padStart(2,"0")}:00`,
-        price: 80 + Math.round(40*Math.sin((Math.PI*i)/12) + Math.random()*10)
-      }));
-      setData(mock);
-    });
-    return () => { mounted = false; };
-  }, []);
+    async function loadData() {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/spotprice/day?zone=${zone}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
 
-  const now = data[12]?.price ?? 0;
-  const min = data.length ? Math.min(...data.map(d=>d.price||0)) : 0;
-  const max = data.length ? Math.max(...data.map(d=>d.price||0)) : 0;
+        // Gör om tid + pris till format som Recharts kan läsa
+        const chartData = json.data.map((row) => ({
+          time: new Date(row.hourISO).toLocaleTimeString("sv-SE", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          price: Number(row.price.toFixed(3)),
+        }));
+
+        setData(chartData);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [zone]);
+
+  if (loading) return <div className="card">Laddar spotpris...</div>;
+  if (error) return <div className="card error">Fel: {error}</div>;
 
   return (
-    <div>
-      <div className="stat-row">
-        <div className="stat">Nu: <b>{now} öre/kWh</b></div>
-        <div className="stat">Lägsta/Högsta: <b>{min} / {max} öre/kWh</b></div>
-      </div>
-      <div className="chart-wrap">
-        <ResponsiveContainer>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-            <XAxis dataKey="time" stroke="var(--text-color)" />
-            <YAxis stroke="var(--text-color)" />
-            <Tooltip contentStyle={{ background:"var(--card-bg)", border:`1px solid var(--card-border)`, color:"var(--text-color)" }} />
-            <Line type="monotone" dataKey="price" stroke="var(--accent-blue)" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="card">
+      <h3>Spotpris ({zone})</h3>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
+          <XAxis dataKey="time" />
+          <YAxis domain={["auto", "auto"]} unit=" kr/kWh" />
+          <Tooltip formatter={(value) => `${value} kr/kWh`} />
+          <Line type="monotone" dataKey="price" stroke="#f59e0b" strokeWidth={2} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
